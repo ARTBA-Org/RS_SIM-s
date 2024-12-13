@@ -81,13 +81,13 @@ function Home() {
 
   // Add new refs for lighting
   const lightingRef = useRef({
-    isDaytime: true,
+    isDaytime: false,
     ambientLight: null,
     directionalLight: null,
     streetLights: [],
-    skyColor: new THREE.Color(0x87CEEB), // Daytime sky blue
-    nightColor: new THREE.Color(0x000020)  // Night sky dark blue
-  });
+    skyColor: new THREE.Color(0x87CEEB),    // Daytime sky blue
+    nightColor: new THREE.Color(0x000020)    // Night sky dark blue
+});
 
  
   placeDrums(roadLength, scene);
@@ -121,7 +121,7 @@ function Home() {
     // Improved font settings
     ctx.strokeStyle = '#444444';
     ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Arial, sans-serif'; // Smaller, cleaner font
+    ctx.font = '11px Arial, sans-serif'; // Smaller, cleaner font
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle'; // Better vertical alignment
     
@@ -138,8 +138,8 @@ function Home() {
       }
       
       return coordsRef.current.useMetric ? 
-        `${meters.toFixed(1)}m` : 
-        `${(meters * 3.28084).toFixed(1)}ft`;
+        `${meters.toFixed(0)}m` : 
+        `${(meters * 3.28084).toFixed(0)}ft`;
     };
     
     // Draw markers every 50 meters/164 feet
@@ -189,7 +189,7 @@ function Home() {
 
   useEffect(() => {
     // Scene setup
-    scene.background = lightingRef.current.skyColor; // Start with daytime sky
+    scene.background = lightingRef.current.nightColor; // Start with daytime sky
     
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 1, 2);
@@ -265,8 +265,7 @@ function Home() {
 
         object.traverse((child) => {
           if (child.isMesh) {
-            console.log('Processing mesh:', child.name);
-            console.log('Material:', child.material);
+
 
             // Create PBR material
             const material = new THREE.MeshStandardMaterial({
@@ -285,8 +284,6 @@ function Home() {
               const colorPath = `${basePath}m107_${part}_color.tga`;
               const normalPath = `${basePath}m107_${part}_normal.tga`;
               const specularPath = `${basePath}m107_${part}_specular.tga`;
-
-              console.log('Loading textures:', { color: colorPath, normal: normalPath, specular: specularPath });
 
               // Load textures with proper loader
               material.map = tgaLoader.load(colorPath);
@@ -659,6 +656,54 @@ function Home() {
   return (
     <div>
       <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />
+      
+      {/* Add floating brake button */}
+      <button
+        onMouseDown={() => {
+          speedRef.current.isBraking = true;
+          vehicleControlsRef.current.isBraking = true;
+        }}
+        onMouseUp={() => {
+          speedRef.current.isBraking = false;
+          vehicleControlsRef.current.isBraking = false;
+        }}
+        onTouchStart={() => {
+          speedRef.current.isBraking = true;
+          vehicleControlsRef.current.isBraking = true;
+        }}
+        onTouchEnd={() => {
+          speedRef.current.isBraking = false;
+          vehicleControlsRef.current.isBraking = false;
+        }}
+        onTouchCancel={() => {
+          speedRef.current.isBraking = false;
+          vehicleControlsRef.current.isBraking = false;
+        }}
+        style={{
+          position: 'fixed',
+          right: '20px',
+          bottom: `calc(20vh + 20px)`,
+          width: '80px',
+          height: '80px',
+          backgroundColor: '#ff4444',
+          border: 'none',
+          clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '16px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          WebkitTapHighlightColor: 'transparent',
+          touchAction: 'manipulation',
+          userSelect: 'none',
+        }}
+      >
+        BRAKE
+      </button>
+
       <canvas 
         ref={distanceCanvasRef}
         style={{ 

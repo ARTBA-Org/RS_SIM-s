@@ -53,27 +53,6 @@ export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, 
     })
     .name('Headlights');
 
-    // Add brake button
-    const brakeButton = {
-      brake: function() {
-        speedRef.current.isBraking = true;
-        vehicleControlsRef.current.isBraking = true;
-      }
-    };
-
-    const brakeController = speedFolder.add(brakeButton, 'brake').name('BRAKE');
-    brakeController.domElement.addEventListener('mousedown', () => {
-      speedRef.current.isBraking = true;
-      vehicleControlsRef.current.isBraking = true;
-    });
-
-    // Style brake button
-    const brakeElement = brakeController.domElement;
-    const brakeButtonElement = brakeElement.querySelector('button');
-    if (brakeButtonElement) {
-      brakeButtonElement.style.backgroundColor = '#ff4444';
-    }
-
     // Add distance display
     const distanceController = speedFolder.add(
       { distance: '0.0 meters' },
@@ -171,16 +150,24 @@ export const updateSpeedController = (speedFolder, speedRef, useMetric) => {
 
 // Add this function to handle day/night transitions
 const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
-    const duration = 1000; // Transition duration in ms
+    const duration = 1000;
     const startTime = Date.now();
     
     const startAmbient = lightingRef.current.ambientLight.intensity;
     const startDirectional = lightingRef.current.directionalLight.intensity;
-    const startSky = scene.background.clone();
     
+    // Ensure we have Color objects for both start and target
+    const startSky = scene.background instanceof THREE.Color ? 
+        scene.background.clone() : 
+        new THREE.Color(scene.background);
+    
+    const targetSky = new THREE.Color(isDaytime ? lightingRef.current.skyColor : lightingRef.current.nightColor);
+      
+    console.log(isDaytime);
+    console.log(targetSky);
+
     const targetAmbient = isDaytime ? 0.6 : 0.1;
     const targetDirectional = isDaytime ? 0.8 : 0.0;
-    const targetSky = isDaytime ? lightingRef.current.skyColor : lightingRef.current.nightColor;
 
     // Handle street light visibility
     scene.traverse((child) => {
@@ -189,21 +176,21 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
       }
     });
 
+
+    console.log(targetSky);
+
     // Animate the transition
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease function for smooth transition
-      const ease = t => t * t * (3 - 2 * t);
-      const t = ease(progress);
+      const t = progress * progress * (3 - 2 * progress); // ease function
 
       // Update lighting intensities
       lightingRef.current.ambientLight.intensity = startAmbient + (targetAmbient - startAmbient) * t;
       lightingRef.current.directionalLight.intensity = startDirectional + (targetDirectional - startDirectional) * t;
-      
-      // Update sky color
-      scene.background.lerpColors(startSky, targetSky, t);
+
+      if (!scene.background) scene.background = new THREE.Color();
+      scene.background = targetSky;
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -211,7 +198,7 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
     };
 
     animate();
-  };
+};
 
 const createParticleSystem = (color, size, count) => {
   const particles = new THREE.BufferGeometry();

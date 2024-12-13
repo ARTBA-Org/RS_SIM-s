@@ -38,7 +38,7 @@ import * as THREE from 'three';
 
   export const placeDrums = (roadLength, scene) => {
     const drumSpacing = 4.572; // 15 feet in meters
-    const drumOffset = 3.5; // Distance from center of road
+    const drumOffset = 4.5; // Distance from center of road
     const startOffset = -roadLength/2; // Start from beginning of road
     
     // Calculate number of drums needed
