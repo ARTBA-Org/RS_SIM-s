@@ -20,21 +20,17 @@ export const getSpeedOptions = (useMetric) => {
     };
 };
 
-export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, wipersRef, scene) => {
+export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, wipersRef, scene, snowRef, rainRef) => {
     const gui = new GUI();
     
     // Speed Controls Folder
     const speedFolder = gui.addFolder('Car Controls');
     
-    // Create initial speed controller
-    updateSpeedController(speedFolder, speedRef, coordsRef.current.useMetric);
-
     // Add metric system toggle
     speedFolder.add(coordsRef.current, 'useMetric')
       .name('Use Metric System')
       .onChange((value) => {
         coordsRef.current.useMetric = value;
-        updateSpeedController(speedFolder, speedRef, value);
         gui.updateDisplay();
       });
 
@@ -85,23 +81,28 @@ export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, 
       switch(value) {
         case 'rain':
           speedRef.current.activeWeather = createRain(false);
+          rainRef.current = speedRef.current.activeWeather;  // Store reference
           scene.add(speedRef.current.activeWeather);
           wipersRef.current.isActive = true;
           wipersRef.current.speed = 0.08;
           break;
         case 'drizzle':
           speedRef.current.activeWeather = createRain(true);
+          rainRef.current = speedRef.current.activeWeather;  // Store reference
           scene.add(speedRef.current.activeWeather);
           wipersRef.current.isActive = true;
           wipersRef.current.speed = 0.05;
           break;
         case 'snow':
           speedRef.current.activeWeather = createSnow();
+          snowRef.current = speedRef.current.activeWeather;  // Store reference
           scene.add(speedRef.current.activeWeather);
           wipersRef.current.isActive = true;
           wipersRef.current.speed = 0.05;
           break;
         default:
+          snowRef.current = null;  // Clear reference
+          rainRef.current = null;  // Clear reference
           wipersRef.current.isActive = false;
           break;
       }
@@ -200,8 +201,9 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
     animate();
 };
 
-const createParticleSystem = (color, size, count) => {
+const createParticleSystem = (isSnow = false) => {
   const particles = new THREE.BufferGeometry();
+  const count = isSnow ? 10000 : 15000;
   const positions = new Float32Array(count * 3);
   
   for (let i = 0; i < count * 3; i += 3) {
@@ -211,26 +213,75 @@ const createParticleSystem = (color, size, count) => {
   }
   
   particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  let material;
   
-  const particleMaterial = new THREE.PointsMaterial({
-    color: color,
-    size: size,
-    transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending
-  });
+  if (isSnow) {
+    // Create a canvas to draw the snowflake
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw snowflake
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    
+    // Draw six-pointed snowflake
+    for (let i = 0; i < 6; i++) {
+      ctx.save();
+      ctx.translate(16, 16);
+      ctx.rotate(i * Math.PI / 3);
+      
+      // Main branch
+      ctx.fillRect(-1, -12, 2, 24);
+      
+      // Side crystals
+      for (let j = 1; j <= 3; j++) {
+        const y = j * 6;
+        ctx.fillRect(-4, -y, 8, 2);  // Horizontal crystal
+        ctx.fillRect(-4, y-2, 8, 2); // Horizontal crystal
+      }
+      
+      ctx.restore();
+    }
+    
+    // Create texture from canvas
+    const snowflakeTexture = new THREE.CanvasTexture(canvas);
+    
+    material = new THREE.PointsMaterial({
+      size: 0.5,
+      map: snowflakeTexture,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: false,
+      sizeAttenuation: true
+    });
+  } else {
+    // Rain material remains unchanged
+    material = new THREE.PointsMaterial({
+      color: 0xaaaaaa,
+      size: 0.1,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+  }
   
-  return new THREE.Points(particles, particleMaterial);
+  return new THREE.Points(particles, material);
 };
 
 const createSnow = () => {
-  return createParticleSystem(0xffffff, 0.2, 10000);
+  return createParticleSystem(true);
 };
 
 const createRain = (isDrizzle) => {
-  return createParticleSystem(
-    0xaaaaaa, 
-    isDrizzle ? 0.05 : 0.1,
-    isDrizzle ? 20000 : 15000
-  );
+  const rain = createParticleSystem(false);
+  if (isDrizzle) {
+    rain.material.size = 0.05;
+    rain.material.opacity = 0.4;
+  }
+  return rain;
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
@@ -14,6 +14,48 @@ import { getSpeedOptions, updateSpeedController, createGUI } from '../components
 import { createStars } from '../components/Scene/createStars';
 import { createRoad } from '../components/Scene/createRoad';
 import { addGrass } from '../components/Scene/createGrass';
+
+const sliderStyles = `
+  .speed-slider {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
+    border-radius: 10px;
+    outline: none;
+    opacity: 0.9;
+    transition: opacity .2s;
+    cursor: pointer;
+  }
+
+  .speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #666666;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .speed-slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #666666;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .speed-slider::-moz-range-track {
+    background: transparent;
+  }
+`;
 
 function Home() {
   const mountRef = useRef(null);
@@ -186,6 +228,8 @@ function Home() {
     ctx.fillText(convertDistance(distance), midX, height * 0.45);
   };
 
+  // Add state for speed
+  const [currentSpeed, setCurrentSpeed] = useState(10); // Default speed
 
   useEffect(() => {
     // Scene setup
@@ -369,7 +413,9 @@ function Home() {
       vehicleControlsRef,
       lightingRef,
       wipersRef,
-      scene
+      scene,
+      snowRef,
+      rainRef
     );
 
     guiRef.current = gui;
@@ -646,18 +692,57 @@ function Home() {
     };
   }, []);
 
-  
-
-
-  
-
-  
+  // Update the speed change handler
+  const handleSpeedChange = (event) => {
+    const newSpeed = Number(event.target.value);
+    setCurrentSpeed(newSpeed);
+    speedRef.current.speed = newSpeed;
+    if (!speedRef.current.isBraking) {
+      speedRef.current.currentSpeed = newSpeed;
+    }
+  };
 
   return (
     <div>
+      <style>{sliderStyles}</style>
+      
       <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />
       
-      {/* Add floating brake button */}
+      <div
+        style={{
+          position: 'fixed',
+          left: '20px',
+          bottom: `calc(20vh + 20px)`,
+          width: '200px',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          padding: '10px',
+          borderRadius: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '5px'
+        }}
+      >
+        <input
+          type="range"
+          min="0"
+          max="97"
+          value={speedRef.current.speed}
+          onChange={handleSpeedChange}
+          className="speed-slider"
+        />
+        <span style={{
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }}>
+          {coordsRef.current.useMetric 
+            ? `${speedRef.current.speed} km/h`
+            : `${Math.round(speedRef.current.speed * 0.621371)} mph`}
+        </span>
+      </div>
+
+      {/* Existing brake button */}
       <button
         onMouseDown={() => {
           speedRef.current.isBraking = true;
