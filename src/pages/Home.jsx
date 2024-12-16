@@ -14,6 +14,7 @@ import { getSpeedOptions, updateSpeedController, createGUI } from '../components
 import { createStars } from '../components/Scene/createStars';
 import { createRoad } from '../components/Scene/createRoad';
 import { addGrass } from '../components/Scene/createGrass';
+import { draw2DScene, create2DVisualization } from '../components/Scene/create2DVisualization';
 
 const sliderStyles = `
   .speed-slider {
@@ -163,69 +164,62 @@ function Home() {
     // Improved font settings
     ctx.strokeStyle = '#444444';
     ctx.fillStyle = '#ffffff';
-    ctx.font = '11px Arial, sans-serif'; // Smaller, cleaner font
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle'; // Better vertical alignment
+    ctx.font = '11px Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
     
     // Convert road length to pixels (use 80% of canvas width)
     const scale = (width * 0.8) / 402.336;
     const offsetX = width * 0.1;
     
-    // Convert measurements based on system, freeze value if car isn't moving
-    const convertDistance = (meters) => {
-      // Only show changing values if car is moving
-      if (speedRef.current.currentSpeed < 0.01) {
-        // Round to nearest 0.1 and freeze
-        meters = Math.round(meters * 10) / 10;
-      }
-      
-      return coordsRef.current.useMetric ? 
-        `${meters.toFixed(0)}m` : 
-        `${(meters * 3.28084).toFixed(0)}ft`;
-    };
+    // Calculate distance between car and worker
+    const distance = Math.abs(carPosition - workerPosition);
     
-    // Draw markers every 50 meters/164 feet
+    // Add legend with distance at top left
+    ctx.fillStyle = '#00ff00';
+    ctx.fillText('● Car', 10, height * 0.3);
+    ctx.fillStyle = '#ff8800';
+    ctx.fillText('● Worker', 70, height * 0.3);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`----- ${distance.toFixed(0)}m`, 140, height * 0.3);
+    
+    // Draw markers every 50 meters
+    ctx.textAlign = 'center'; // Reset text align for markers
     for (let i = 0; i <= 400; i += 50) {
       const x = offsetX + (i * scale);
       
+      ctx.strokeStyle = '#444444';
       ctx.beginPath();
-      ctx.moveTo(x, height * 0.65);
-      ctx.lineTo(x, height * 0.35);
+      ctx.moveTo(x, height * 0.7);
+      ctx.lineTo(x, height * 0.5);
       ctx.stroke();
       
-      ctx.fillText(convertDistance(i), x, height * 0.25);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`${i}m`, x, height * 0.85);
     }
     
-    // Draw worker position (fixed at 0)
+    // Draw worker position
     const workerX = offsetX + ((workerPosition + 200) * scale);
     ctx.fillStyle = '#ff8800';
     ctx.beginPath();
-    ctx.arc(workerX, height * 0.5, 8, 0, Math.PI * 2);
+    ctx.arc(workerX, height * 0.6, 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillText('Worker', workerX, height * 0.15);
     
     // Draw car position
     const carX = offsetX + ((carPosition + 200) * scale);
     ctx.fillStyle = '#00ff00';
     ctx.beginPath();
-    ctx.arc(carX, height * 0.5, 6, 0, Math.PI * 2);
+    ctx.arc(carX, height * 0.6, 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillText('Car', carX, height * 0.8);
     
     // Draw distance line between car and worker
-    const distance = Math.abs(carPosition - workerPosition);
     ctx.strokeStyle = '#ffffff';
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
-    ctx.moveTo(carX, height * 0.5);
-    ctx.lineTo(workerX, height * 0.5);
+    ctx.moveTo(carX, height * 0.6);
+    ctx.lineTo(workerX, height * 0.6);
     ctx.stroke();
     ctx.setLineDash([]);
-    
-    // Update distance text
-    ctx.fillStyle = '#ffffff';
-    const midX = (carX + workerX) / 2;
-    ctx.fillText(convertDistance(distance), midX, height * 0.45);
   };
 
   // Add state for speed
@@ -652,7 +646,6 @@ function Home() {
     controls.minDistance = 5;              // Don't allow camera too close
     controls.maxDistance = 100;            // Don't allow camera too far
 
-    
 
     // Place trees randomly on both sides
     const minDistance = 10; // Minimum distance between trees
@@ -662,17 +655,6 @@ function Home() {
     camera.position.set(30, 20, 30);
     controls.target.set(0, 10, 0);
     controls.update();
-
-    // Rotate entire scene 90 degrees counterclockwise around Y axis
-    
-    
-
-    
-
-    // Add GUI controls for time of day
-
-    
-    
 
     // Make sure to clean up the refs in the cleanup function
     return () => {
@@ -702,6 +684,16 @@ function Home() {
     }
   };
 
+  useEffect(() => {
+    const canvas = create2DVisualization(distanceCanvasRef);
+    document.body.appendChild(canvas);
+
+    return () => {
+      // Cleanup
+      canvas.remove();
+    };
+  }, []);
+
   return (
     <div>
       <style>{sliderStyles}</style>
@@ -712,7 +704,7 @@ function Home() {
         style={{
           position: 'fixed',
           left: '20px',
-          bottom: `calc(20vh + 20px)`,
+          bottom: `calc(13vh)`,
           width: '200px',
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
           padding: '10px',
@@ -767,7 +759,7 @@ function Home() {
         style={{
           position: 'fixed',
           right: '20px',
-          bottom: `calc(20vh + 20px)`,
+          bottom: `calc(13vh)`,
           width: '80px',
           height: '80px',
           backgroundColor: '#ff4444',
@@ -788,21 +780,6 @@ function Home() {
       >
         BRAKE
       </button>
-
-      <canvas 
-        ref={distanceCanvasRef}
-        style={{ 
-          width: '100%',
-          maxWidth: '768px',
-          height: '20vh',
-          backgroundColor: '#1a1a1a',
-          margin: '0 auto',
-          display: 'block',
-          '@media (min-width: 768px)': {
-            width: '40%'
-          }
-        }} 
-      />
     </div>
   );
 }
