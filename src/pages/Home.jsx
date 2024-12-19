@@ -631,7 +631,7 @@ function Home() {
         style={{
           position: 'fixed',
           left: '20px',
-          bottom: `calc(13vh)`,
+          bottom: `calc(11vh)`,
           width: '200px',
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
           padding: '10px',
@@ -686,7 +686,7 @@ function Home() {
         style={{
           position: 'fixed',
           right: '20px',
-          bottom: `calc(13vh)`,
+          bottom: `calc(11vh)`,
           width: '80px',
           height: '80px',
           backgroundColor: '#ff4444',
@@ -711,7 +711,7 @@ function Home() {
       {/* Headlight Controls */}
       <div style={{
         height:'20px',
-        bottom: `calc(26vh)`,
+        bottom: `calc(23.5vh)`,
         position: 'fixed',
         fontSize: '12px',
         left: '20px'}}>Headlights</div>
@@ -719,7 +719,7 @@ function Home() {
         height:'20px',
         position: 'fixed',
         left: '20px',
-        bottom: `calc(23vh)`, // Position above brake button
+        bottom: `calc(21vh)`, // Position above brake button
         display: 'flex',
         flexDirection: 'row',
         gap: '18px',
