@@ -1,6 +1,8 @@
 import { useRef, useEffect } from 'react';
 
-export const draw2DScene = (ctx, carPosition, workerPosition) => {
+export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => {
+  console.log('Current headlight mode:', headlightMode); // Debug log
+  
   const canvas = ctx.canvas;
   
   // Set canvas resolution to match display size
@@ -31,13 +33,21 @@ export const draw2DScene = (ctx, carPosition, workerPosition) => {
   // Calculate distance between car and worker
   const distance = Math.abs(carPosition - workerPosition);
   
-  // Add legend with distance at top left
+  // Draw legend with headlight beam indicator - moved earlier and made more visible
   ctx.fillStyle = '#00ff00';
   ctx.fillText('● Car', 10, height * 0.3);
-  ctx.fillStyle = '#ff8800';
-  ctx.fillText('● Worker', 70, height * 0.3);
+  
+  // Make beam indicator more visible
+  ctx.fillStyle = 'rgba(176, 224, 230, 0.8)'; // Increased opacity
+  ctx.fillRect(70, height * 0.3 - 10, 15, 15); // Draw a visible rectangle instead of text
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(`----- ${distance.toFixed(0)}m`, 140, height * 0.3);
+  ctx.fillText('Beam', 95, height * 0.3);
+  
+  ctx.fillStyle = '#ff8800';
+  ctx.fillText('● Worker', 140, height * 0.3);
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(`----- ${distance.toFixed(0)}m`, 200, height * 0.3);
   
   // Draw markers every 50 meters
   ctx.textAlign = 'center'; // Reset text align for markers
@@ -54,21 +64,35 @@ export const draw2DScene = (ctx, carPosition, workerPosition) => {
     ctx.fillText(`${i}m`, x, height * 0.85);
   }
   
-  // Draw worker position
-  const workerX = offsetX + ((workerPosition + 200) * scale);
-  ctx.fillStyle = '#ff8800';
-  ctx.beginPath();
-  ctx.arc(workerX, height * 0.6, 4, 0, Math.PI * 2);
-  ctx.fill();
   
-  // Draw car position
-  const carX = offsetX + ((carPosition + 200) * scale);
+  
+  // Draw car and worker positions
+  const workerX = offsetX + ((workerPosition + 200) * scale);
+    ctx.fillStyle = '#ff8800';
+    ctx.beginPath();
+    ctx.arc(workerX, height * 0.6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw car position
+    const carX = offsetX + ((carPosition + 200) * scale);
+    ctx.fillStyle = '#00ff00';
+    ctx.beginPath();
+    ctx.arc(carX, height * 0.6, 4, 0, Math.PI * 2);
+    ctx.fill();
+  
+  // Draw car
   ctx.fillStyle = '#00ff00';
   ctx.beginPath();
-  ctx.arc(carX, height * 0.6, 4, 0, Math.PI * 2);
+  ctx.arc(carX, height * 0.6, 5, 0, Math.PI * 2);
   ctx.fill();
   
-  // Draw distance line between car and worker
+  // Draw worker
+  ctx.fillStyle = '#ff8800';
+  ctx.beginPath();
+  ctx.arc(workerX, height * 0.6, 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Draw distance line
   ctx.strokeStyle = '#ffffff';
   ctx.setLineDash([5, 5]);
   ctx.beginPath();
@@ -76,7 +100,30 @@ export const draw2DScene = (ctx, carPosition, workerPosition) => {
   ctx.lineTo(workerX, height * 0.6);
   ctx.stroke();
   ctx.setLineDash([]);
+
+  // Draw headlight beam projection if lights are on - made more visible
+  if (headlightMode != 'off') {
+    console.log('Drawing beam...'); // Debug log
+    const carX = offsetX + (carPosition * scale) + 310;
+    const beamLength = headlightMode === true ? 100 : 50; // High beam vs normal beam
+    const beamWidth = beamLength * 0.4; // Beam width proportional to length
+    
+    ctx.beginPath();
+    ctx.moveTo(carX, height * 0.6); // Start at car position
+    ctx.lineTo(carX + (beamLength * scale), height * 0.6 - (beamWidth * scale / 2)); // Top point
+    ctx.lineTo(carX + (beamLength * scale), height * 0.6 + (beamWidth * scale / 2)); // Bottom point
+    ctx.closePath();
+    
+    ctx.fillStyle = 'rgba(176, 224, 230, 0.6)'; // Increased opacity
+    ctx.fill();
+    
+    // Add stroke to make it more visible
+    ctx.strokeStyle = 'rgba(176, 224, 230, 0.8)';
+    ctx.stroke();
+  }
 };
+
+
 
 export const create2DVisualization = (distanceCanvasRef) => {
   // Instead of JSX, create the canvas element directly

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 const roadMaterial = new THREE.MeshStandardMaterial({
-    color: 0x202020, // Darker asphalt color
+    color: 0x151515, // Darker asphalt color
     roughness: 0.8,
     metalness: 0.1
   });

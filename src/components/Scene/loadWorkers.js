@@ -8,7 +8,7 @@ export const loadWorkers = (scene) => {
 
   // Worker positions along the road
   const workerPositions = [
-    { x: -50, y: 0, z: 5 },
+    { x: -500, y: 0, z: 5 },
     { x: 30, y: 0, z: -5 },
     { x: 0, y: 0, z: 6 }
   ];

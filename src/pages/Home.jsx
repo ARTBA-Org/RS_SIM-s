@@ -143,84 +143,7 @@ function Home() {
     console.error('Failed to load tree model:', error);
   });
 
-  // Add this function before your main useEffect
-  const draw2DScene = (ctx, carPosition, workerPosition) => {
-    const canvas = ctx.canvas;
-    
-    // Set canvas resolution to match display size
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    
-    const width = rect.width;
-    const height = rect.height;
-    
-    // Clear canvas
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, width, height);
-    
-    // Improved font settings
-    ctx.strokeStyle = '#444444';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '11px Arial, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    
-    // Convert road length to pixels (use 80% of canvas width)
-    const scale = (width * 0.8) / 402.336;
-    const offsetX = width * 0.1;
-    
-    // Calculate distance between car and worker
-    const distance = Math.abs(carPosition - workerPosition);
-    
-    // Add legend with distance at top left
-    ctx.fillStyle = '#00ff00';
-    ctx.fillText('● Car', 10, height * 0.3);
-    ctx.fillStyle = '#ff8800';
-    ctx.fillText('● Worker', 70, height * 0.3);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`----- ${distance.toFixed(0)}m`, 140, height * 0.3);
-    
-    // Draw markers every 50 meters
-    ctx.textAlign = 'center'; // Reset text align for markers
-    for (let i = 0; i <= 400; i += 50) {
-      const x = offsetX + (i * scale);
-      
-      ctx.strokeStyle = '#444444';
-      ctx.beginPath();
-      ctx.moveTo(x, height * 0.7);
-      ctx.lineTo(x, height * 0.5);
-      ctx.stroke();
-      
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(`${i}m`, x, height * 0.85);
-    }
-    
-    // Draw worker position
-    const workerX = offsetX + ((workerPosition + 200) * scale);
-    ctx.fillStyle = '#ff8800';
-    ctx.beginPath();
-    ctx.arc(workerX, height * 0.6, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw car position
-    const carX = offsetX + ((carPosition + 200) * scale);
-    ctx.fillStyle = '#00ff00';
-    ctx.beginPath();
-    ctx.arc(carX, height * 0.6, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw distance line between car and worker
-    ctx.strokeStyle = '#ffffff';
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(carX, height * 0.6);
-    ctx.lineTo(workerX, height * 0.6);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  };
+  
 
   // Add state for speed
   const [currentSpeed, setCurrentSpeed] = useState(10); // Default speed
@@ -242,11 +165,11 @@ function Home() {
     controls.enableDamping = true;
 
     // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Brighter for daytime
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0); // Brighter for daytime
     lightingRef.current.ambientLight = ambientLight;
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Sun
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1); // Sun
     directionalLight.position.set(5, 5, 5);
     directionalLight.castShadow = true;
     lightingRef.current.directionalLight = directionalLight;
@@ -358,7 +281,7 @@ function Home() {
         const model = gltf.scene;
         model.scale.setScalar(1);
         model.position.set(
-          20,
+          0,
           0,
           -(roadWidth / 2) + 6
         );
@@ -409,8 +332,7 @@ function Home() {
       wipersRef,
       scene,
       snowRef,
-      rainRef,
-      carRef
+      rainRef
     );
 
     guiRef.current = gui;
@@ -522,10 +444,13 @@ function Home() {
         // Update 2D visualization if canvas exists
         if (distanceCanvasRef.current) {
           const ctx = distanceCanvasRef.current.getContext('2d');
+          const currentHeadlightMode = carRef.current?.userData?.headlightMode;
+
           draw2DScene(
             ctx,
             carRef.current.position.x,
-            0  // Worker position is at 0
+            0,  // Worker position is at 0
+            currentHeadlightMode
           );
         }
 
@@ -621,8 +546,8 @@ function Home() {
       renderer.setSize(window.innerWidth, window.innerHeight);
       
       // Update 2D canvas size
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.2;
+      //canvas.width = window.innerWidth;
+      //canvas.height = window.innerHeight * 0.2;
     };
     window.addEventListener('resize', handleResize);
 
@@ -781,6 +706,63 @@ function Home() {
       >
         BRAKE
       </button>
+
+      {/* Headlight Controls */}
+      <div style={{
+        height:'20px',
+        bottom: `calc(26vh)`,
+        position: 'fixed',
+        fontSize: '12px',
+        left: '20px'}}>Headlights</div>
+      <div style={{
+        height:'20px',
+        position: 'fixed',
+        left: '20px',
+        bottom: `calc(23vh)`, // Position above brake button
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '18px',
+      }}>
+        
+        {['Normal', 'High', 'Off'].map((mode) => (
+          <button
+            key={mode}
+            onClick={() => {
+              if (carRef.current?.userData.configureHeadlights) {
+                switch(mode) {
+                  case 'Normal':
+                    carRef.current.userData.configureHeadlights(false);
+                    break;
+                  case 'High':
+                    carRef.current.userData.configureHeadlights(true);
+                    break;
+                  case 'Off':
+                    // We'll need to add this functionality to createCar.js
+                    carRef.current.userData.configureHeadlights('off');
+                    break;
+                }
+              }
+            }}
+            style={{
+              width: '60px',
+              height: '25px',
+              backgroundColor: '#2196F3',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '10px',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              userSelect: 'none',
+            }}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

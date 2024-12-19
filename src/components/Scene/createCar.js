@@ -38,40 +38,50 @@ export const createCar = (roadWidth, scene, carRef, camera, controls) => {
     scene.add(rightTarget);
 
     // Configure headlights with initial regular beam settings
-    const configureHeadlights = (isHighBeam = false) => {
+    const configureHeadlights = (mode) => {
+        // Store the current mode for the 2D visualization
+        car.userData.headlightMode = mode;
+        
         [leftHeadlight, rightHeadlight].forEach(light => {
             // Common settings for both regular and high beam
-            light.angle = Math.PI * -3;
+            light.angle = Math.PI/6;
             light.penumbra = 1;
             light.decay = 0;
             light.castShadow = true;
             light.forward = 5;
-            light.horizontalAngle = 180;  // Same horizontal angle for both modes
+            light.horizontalAngle = 180;
 
             light.shadow.mapSize.width = 1024;
             light.shadow.mapSize.height = 1024;
             light.shadow.camera.near = 0.5;
             light.shadow.camera.far = 30;
 
-            // Only intensity and distance differ between modes
-            if (isHighBeam) {
-                console.log('High beam activated');
-                light.intensity = 15;
-                light.distance = 40;    // High beam reaches far
-            } else {
-                light.intensity = 8;
-                light.distance = 10;     // Regular beam reduced from 200 to 20
+            // Handle all three modes
+            if (mode === 'off') {
+                light.distance = 0;
+                light.intensity = 0;  // Turn off the light
+                light.visible = false;
+            } else if (mode === true) { // High beam
+                light.intensity = 20;
+                light.distance = 100;
+                light.visible = true;
+            } else { // Normal beam
+                light.intensity = 14;
+                light.distance = 50;
+                light.visible = true;
             }
         });
 
-        // Update targets with 180 degree angle for both modes
-        const angleRad = Math.PI; // 180 degrees in radians
-        [leftTarget, rightTarget].forEach(target => {
-            const forwardDistance = Math.cos(angleRad) * 20;
-            const sideDistance = Math.sin(angleRad) * 20;
-            target.position.x = forwardDistance;
-            target.position.z = sideDistance;
-        });
+        // Update targets only if lights are on
+        if (mode !== 'off') {
+            const angleRad = Math.PI;
+            [leftTarget, rightTarget].forEach(target => {
+                const forwardDistance = Math.cos(angleRad) * 20;
+                const sideDistance = Math.sin(angleRad) * 20;
+                target.position.x = forwardDistance;
+                target.position.z = sideDistance;
+            });
+        }
     };
 
     // Initial configuration
@@ -81,9 +91,9 @@ export const createCar = (roadWidth, scene, carRef, camera, controls) => {
     car.userData.configureHeadlights = configureHeadlights;
 
     // Position lights relative to car
-    const headlightOffset = 2;
-    leftHeadlight.position.set(5, 1, -headlightOffset/2);
-    rightHeadlight.position.set(5, 1, headlightOffset/2);
+    const headlightOffset = 0.8;
+    leftHeadlight.position.set(10, 0.8, -1);
+    rightHeadlight.position.set(8, -100.8, -3);
 
     // Set up targets
     leftHeadlight.target = leftTarget;

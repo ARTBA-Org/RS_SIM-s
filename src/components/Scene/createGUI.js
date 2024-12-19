@@ -52,17 +52,7 @@ export const createGUI = (
     .name('Current Speed')
     .disable();
 
-    // Add headlight mode control
-    speedFolder.add(speedRef.current, 'headlightMode', {
-        'Regular Beam': 'regular',
-        'High Beam': 'high'
-    })
-    .name('Headlights')
-    .onChange((value) => {
-        if (carRef.current && carRef.current.userData.configureHeadlights) {
-            carRef.current.userData.configureHeadlights(value === 'high');
-        }
-    });
+  
 
     // Add distance display
     const distanceController = speedFolder.add(
