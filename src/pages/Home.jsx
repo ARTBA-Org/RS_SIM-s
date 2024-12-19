@@ -450,7 +450,8 @@ function Home() {
             ctx,
             carRef.current.position.x,
             0,  // Worker position is at 0
-            currentHeadlightMode
+            currentHeadlightMode,
+            coordsRef.current.useMetric
           );
         }
 

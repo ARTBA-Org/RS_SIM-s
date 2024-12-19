@@ -43,7 +43,7 @@ export const createGUI = (
       .name('Use Metric System')
       .onChange((value) => {
         coordsRef.current.useMetric = value;
-        gui.updateDisplay();
+        //gui.updateDisplay();
       });
 
     // Add speed display

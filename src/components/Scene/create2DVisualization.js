@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 
-export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => {
-  console.log('Current headlight mode:', headlightMode); // Debug log
+export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode, useMetric) => {
+
   
   const canvas = ctx.canvas;
   
@@ -30,8 +30,12 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => 
   const scale = (width * 0.8) / 402.336;
   const offsetX = width * 0.1;
   
-  // Calculate distance between car and worker
+  // Convert distance to feet if not using metric
   const distance = Math.abs(carPosition - workerPosition);
+
+  const displayDistance = useMetric ? 
+    `${distance.toFixed(0)}m` : 
+    `${(distance * 3.28084).toFixed(0)}ft`;  // Convert meters to feet
   
   // Draw legend with headlight beam indicator - moved earlier and made more visible
   ctx.fillStyle = '#00ff00';
@@ -47,12 +51,15 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => 
   ctx.fillText('● Worker', 140, height * 0.3);
   
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(`----- ${distance.toFixed(0)}m`, 200, height * 0.3);
+  ctx.fillText(`----- ${displayDistance}`, 200, height * 0.3);
   
-  // Draw markers every 50 meters
-  ctx.textAlign = 'center'; // Reset text align for markers
-  for (let i = 0; i <= 400; i += 50) {
-    const x = offsetX + (i * scale);
+  // Draw markers every 50 meters/150 feet
+  ctx.textAlign = 'center';
+  const markerInterval = useMetric ? 50 : 150;  // 50m or ~150ft
+  const maxDistance = useMetric ? 400 : 1200;   // 400m or ~1200ft
+  
+  for (let i = 0; i <= maxDistance; i += markerInterval) {
+    const x = offsetX + ((i / (useMetric ? 1 : 3.28084)) * scale);
     
     ctx.strokeStyle = '#444444';
     ctx.beginPath();
@@ -61,7 +68,7 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => 
     ctx.stroke();
     
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${i}m`, x, height * 0.85);
+    ctx.fillText(`${i}${useMetric ? 'm' : 'ft'}`, x, height * 0.85);
   }
   
   
@@ -103,7 +110,7 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => 
 
   // Draw headlight beam projection if lights are on - made more visible
   if (headlightMode != 'off') {
-    console.log('Drawing beam...'); // Debug log
+
 
     const beamLength = headlightMode === true ? 100 : 50; // High beam vs normal beam
     const beamWidth = beamLength * 0.4; // Beam width proportional to length
