@@ -703,6 +703,10 @@ function Home() {
           WebkitTapHighlightColor: 'transparent',
           touchAction: 'manipulation',
           userSelect: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',  // Added for Safari
+          msUserSelect: 'none',      // Added for IE/Edge
+          MozUserSelect: 'none',     // Added for Firefox
         }}
       >
         BRAKE
