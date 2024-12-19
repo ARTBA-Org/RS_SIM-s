@@ -112,7 +112,7 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode, use
   if (headlightMode != 'off') {
 
 
-    const beamLength = headlightMode === true ? 100 : 50; // High beam vs normal beam
+    const beamLength = headlightMode === true ? 80 : 35; // High beam vs normal beam
     const beamWidth = beamLength * 0.4; // Beam width proportional to length
     
     ctx.beginPath();

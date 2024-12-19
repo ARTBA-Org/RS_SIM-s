@@ -27,7 +27,7 @@ export const createWeatherEffects = (scene, gui, materials) => {
 
   // Create rain and snow systems
   const rainSystem = createParticleSystem(0xaaaaaa, 0.1, 15000);
-  const snowSystem = createParticleSystem(0xffffff, 0.2, 10000);
+  const snowSystem = createParticleSystem(0xffffff, 0.2, 100000);
   rainSystem.visible = false;
   snowSystem.visible = false;
   scene.add(rainSystem);
