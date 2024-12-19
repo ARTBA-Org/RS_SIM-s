@@ -104,7 +104,7 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode) => 
   // Draw headlight beam projection if lights are on - made more visible
   if (headlightMode != 'off') {
     console.log('Drawing beam...'); // Debug log
-    const carX = offsetX + (carPosition * scale) + 310;
+
     const beamLength = headlightMode === true ? 100 : 50; // High beam vs normal beam
     const beamWidth = beamLength * 0.4; // Beam width proportional to length
     
