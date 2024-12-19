@@ -32,9 +32,11 @@ export const createGUI = (
     carRef
 ) => {
     const gui = new GUI();
+    gui.close();
     
     // Speed Controls Folder
     const speedFolder = gui.addFolder('Car Controls');
+    speedFolder.close();
     
     // Add metric system toggle
     speedFolder.add(coordsRef.current, 'useMetric')
@@ -62,10 +64,11 @@ export const createGUI = (
     .name('Distance to Worker')
     .disable();
 
-    speedFolder.open();
+
 
     // Weather Controls Folder
     const weatherFolder = gui.addFolder('Weather Effects');
+    weatherFolder.close();
     
     weatherFolder.add(speedRef.current, 'pavementCondition', {
       'Normal': 'normal',
@@ -113,10 +116,11 @@ export const createGUI = (
       }
     });
 
-    weatherFolder.open();
+
 
     // Environment Controls Folder
     const environmentFolder = gui.addFolder('Environment');
+    environmentFolder.close();
     
     environmentFolder.add(lightingRef.current, 'isDaytime')
       .name('Daytime')
@@ -168,9 +172,7 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
         new THREE.Color(scene.background);
     
     const targetSky = new THREE.Color(isDaytime ? lightingRef.current.skyColor : lightingRef.current.nightColor);
-      
-    console.log(isDaytime);
-    console.log(targetSky);
+
 
     const targetAmbient = isDaytime ? 0.6 : 0;
     const targetDirectional = isDaytime ? 0.8 : 0.0;
@@ -181,9 +183,6 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
         child.visible = !isDaytime;
       }
     });
-
-
-    console.log(targetSky);
 
     // Animate the transition
     const animate = () => {
