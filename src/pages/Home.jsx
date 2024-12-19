@@ -409,7 +409,8 @@ function Home() {
       wipersRef,
       scene,
       snowRef,
-      rainRef
+      rainRef,
+      carRef
     );
 
     guiRef.current = gui;

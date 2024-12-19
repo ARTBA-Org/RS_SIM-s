@@ -20,7 +20,17 @@ export const getSpeedOptions = (useMetric) => {
     };
 };
 
-export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, wipersRef, scene, snowRef, rainRef) => {
+export const createGUI = (
+    speedRef, 
+    coordsRef, 
+    vehicleControlsRef, 
+    lightingRef, 
+    wipersRef, 
+    scene, 
+    snowRef, 
+    rainRef,
+    carRef
+) => {
     const gui = new GUI();
     
     // Speed Controls Folder
@@ -47,7 +57,12 @@ export const createGUI = (speedRef, coordsRef, vehicleControlsRef, lightingRef, 
         'Regular Beam': 'regular',
         'High Beam': 'high'
     })
-    .name('Headlights');
+    .name('Headlights')
+    .onChange((value) => {
+        if (carRef.current && carRef.current.userData.configureHeadlights) {
+            carRef.current.userData.configureHeadlights(value === 'high');
+        }
+    });
 
     // Add distance display
     const distanceController = speedFolder.add(
@@ -167,7 +182,7 @@ const updateTimeOfDay = (isDaytime, lightingRef, scene) => {
     console.log(isDaytime);
     console.log(targetSky);
 
-    const targetAmbient = isDaytime ? 0.6 : 0.1;
+    const targetAmbient = isDaytime ? 0.6 : 0;
     const targetDirectional = isDaytime ? 0.8 : 0.0;
 
     // Handle street light visibility

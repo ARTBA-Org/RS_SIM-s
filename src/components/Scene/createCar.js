@@ -55,10 +55,11 @@ export const createCar = (roadWidth, scene, carRef, camera, controls) => {
 
             // Only intensity and distance differ between modes
             if (isHighBeam) {
-                light.intensity = 5;
-                light.distance = 100;    // High beam reaches far
+                console.log('High beam activated');
+                light.intensity = 15;
+                light.distance = 40;    // High beam reaches far
             } else {
-                light.intensity = 3;
+                light.intensity = 8;
                 light.distance = 10;     // Regular beam reduced from 200 to 20
             }
         });
@@ -75,6 +76,9 @@ export const createCar = (roadWidth, scene, carRef, camera, controls) => {
 
     // Initial configuration
     configureHeadlights(false);
+
+    // Store the configureHeadlights function in the car's userData
+    car.userData.configureHeadlights = configureHeadlights;
 
     // Position lights relative to car
     const headlightOffset = 2;
