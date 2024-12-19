@@ -43,9 +43,9 @@ export const draw2DScene = (ctx, carPosition, workerPosition, headlightMode, use
   
   // Make beam indicator more visible
   ctx.fillStyle = 'rgba(176, 224, 230, 0.8)'; // Increased opacity
-  ctx.fillRect(70, height * 0.3 - 10, 15, 15); // Draw a visible rectangle instead of text
+  ctx.fillRect(55, height * 0.3 - 10, 15, 15); // Draw a visible rectangle instead of text
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('Beam', 95, height * 0.3);
+  ctx.fillText('Headlights', 75, height * 0.3);
   
   ctx.fillStyle = '#ff8800';
   ctx.fillText('● Worker', 140, height * 0.3);
