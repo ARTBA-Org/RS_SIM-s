@@ -601,6 +601,10 @@ function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    document.title = "Night Drive Simulator";
+  }, []);
+
   // Update the speed change handler
   const handleSpeedChange = (event) => {
     const newSpeed = Number(event.target.value);
