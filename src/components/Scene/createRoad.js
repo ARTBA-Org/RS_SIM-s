@@ -7,10 +7,33 @@ const roadMaterial = new THREE.MeshStandardMaterial({
   });
 
   const stripeMaterial = new THREE.MeshStandardMaterial({
-    color: 0xCCCCCC, // Slightly dimmer white for road markings
-    roughness: 0.5,
-    metalness: 0
+    color: 0xFFFFFF, // Slightly dimmer white for road markings
+    roughness: 0,   // Reduced roughness for more shine
+    metalness: 0,   // Slight metalness for better reflection
+    emissive: 0xFFFFFF, // Base emissive glow
+    emissiveIntensity: 0.5
   });
+
+  const retroReflectiveEffect = new THREE.TextureLoader().load('/path/to/gradient.png'); // Optional: add gradient texture
+  stripeMaterial.onBeforeCompile = (shader) => {
+    shader.uniforms.viewPosition = { value: new THREE.Vector3() };
+    
+    // Add to fragment shader - simplified retroreflective effect
+    shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <emissivemap_fragment>',
+        `
+        #include <emissivemap_fragment>
+        
+        // Calculate view direction
+        vec3 viewDir = normalize(vViewPosition);
+        // Simulate retroreflection
+        float retroReflection = pow(max(dot(normal, viewDir), 0.0), 2.0);
+        
+        // Increase emissive based on view angle
+        totalEmissiveRadiance += emissive * retroReflection * 2.0;
+        `
+    );
+  };
 
 export const createRoad = (roadLength, roadWidth, scene) => {
     const roadGeometry = new THREE.PlaneGeometry(roadLength, roadWidth);
